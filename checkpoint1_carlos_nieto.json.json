@@ -1,0 +1,208 @@
+{
+  "name": "Agente Tenda Checkpoint 1",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "95d7a3fe-e0e8-4b57-ab5b-9e97103bf494",
+      "name": "When chat message received",
+      "webhookId": "0d213232-993e-4e40-90db-24c7b4480921"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# ROL\nSos el asistente virtual de información de la Tenda de Umbanda Nossa Senhora Aparecida (Montevideo, Uruguay). Atendés consultas del público general sobre el calendario de sesiones abiertas.\n\n# ÁMBITO\nSolo respondés sobre fechas, días y horarios de las sesiones abiertas al público que figuran en la sección CALENDARIO OFICIAL. No respondés consultas doctrinarias, espirituales, personales, médicas ni de atención particular.\n\n# OBJETIVO\nQue el consultante sepa con exactitud cuándo puede asistir a una sesión abierta, con una respuesta breve, clara y correcta.\n\n# CALENDARIO OFICIAL\n- Octubre 2026: sesiones abiertas al público el sábado 17 y el sábado 24, a las 19:45 h.\n- Noviembre 2026: sesiones abiertas al público el sábado 7 y el sábado 14, a las 19:45 h.\nEsta es tu única fuente de información. Si una fecha o dato no figura acá, no existe para vos.\n\n# REGLAS\n- No inventes fechas, horarios, direcciones ni ningún dato que no esté en el CALENDARIO OFICIAL.\n- No solicites datos personales al consultante (nombre, teléfono, correo, dirección).\n- No brindes datos personales de otros consultantes ni de integrantes de la Tenda.\n- No des orientación espiritual, doctrinaria ni médica.\n- Respondé en el idioma del consultante, únicamente en español o portugués. Si escribe en otro idioma, respondé en español.\n- Usá un español formal y claro. No utilices lenguaje inclusivo (terminaciones con \"e\", \"x\" o \"@\").\n- Sé conciso y evitá términos técnicos.\n\n# ESCALAMIENTO\nSi la consulta está fuera de tu ámbito o no podés responderla con el CALENDARIO OFICIAL:\n1. Usá la herramienta \"escalar_consulta_tenda\" para enviar a la Tenda un aviso con el texto exacto de la consulta.\n2. Respondé al consultante que su consulta fue derivada al equipo de la Tenda y que puede comunicarse por los canales oficiales.\nNunca uses la herramienta para consultas que ya están resueltas en el CALENDARIO OFICIAL. Usala como máximo una vez por consulta.\n\n# PROCESO\n1. Identificá la intención del mensaje.\n2. Si la respuesta está en el CALENDARIO OFICIAL, respondé directamente sin usar herramientas.\n3. Si no está, aplicá el ESCALAMIENTO.\n\n# FORMATO DE RESPUESTA\n- Tono amable, profesional y directo.\n- Máximo 3 oraciones.",
+          "maxIterations": 7,
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "b0a43d17-aab7-46f7-9add-de73a6c75ae8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        208
+      ],
+      "id": "d9615fcc-8bf9-4bc0-a96e-2e02a1bc329f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Usá esta herramienta para ESCALAR al equipo de la Tenda de Umbanda Nossa Senhora Aparecida cualquier consulta que no puedas responder con el CALENDARIO OFICIAL. Envía un correo interno a la Tenda con el texto de la consulta para que una persona la atienda.\n\nCUÁNDO USARLA:\n- El consultante pregunta algo fuera del calendario de sesiones abiertas: consultas particulares, atención espiritual, doctrina, costos, cómo ingresar a la corriente, ubicación o cualquier tema no incluido en el calendario.\n- El consultante pregunta por una fecha o mes que no figura en el CALENDARIO OFICIAL.\n- El consultante pide expresamente hablar con una persona de la Tenda.\n\nCUÁNDO NO USARLA:\n- Si la pregunta se responde con el CALENDARIO OFICIAL (por ejemplo: \"¿cuándo hay sesión en octubre?\", \"¿a qué hora empieza?\"). En ese caso respondé directamente.\n- Para saludos, agradecimientos o mensajes sin una consulta concreta.\n- Más de una vez por la misma consulta.\n\nQUÉ ENVIAR:\nEn el cuerpo del mensaje incluí el texto exacto de la consulta del usuario y un resumen breve de por qué se escala. No agregues datos personales que el usuario no haya escrito.",
+        "sendTo": "cn.mdeo@gmail.com",
+        "subject": "Nueva consulta",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        208
+      ],
+      "id": "06d82c31-ca61-4cb1-ac1e-74ac5e64de97",
+      "name": "escalar_consulta_tenda",
+      "webhookId": "4ec51c48-ecdd-4358-957b-0473491cecff",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T7G1E7N84Mzr3PMp",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "cn.mdeo@gmail.com",
+        "subject": "[LOG] Ejecución Agente Tenda",
+        "emailType": "text",
+        "message": "=REPORTE DE EJECUCIÓN – AGENTE TENDA Fecha: {{ $now.toFormat('dd/MM/yyyy HH:mm') }}  MENSAJE DEL USUARIO: {{ $('When chat message received').item.json.chatInput }}  RESPUESTA DEL AGENTE: {{ $json.output }}  ¿USÓ LA HERRAMIENTA?: {{ ($json.intermediateSteps || []).length > 0 ? 'Sí' : 'No' }}  PASOS INTERMEDIOS (razonamiento y herramientas): {{ JSON.stringify($json.intermediateSteps || [], null, 2) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "1f24d9dd-e83c-4402-ae53-87e6c484f22e",
+      "name": "log_observabilidad",
+      "webhookId": "b2cabde8-8cb1-4c8e-956a-4a2ff961a31a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T7G1E7N84Mzr3PMp",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "439bfe6c-8053-44f2-90c8-7de0cad1719e",
+              "name": "output",
+              "value": "=     {{ $('AI Agent').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        816,
+        0
+      ],
+      "id": "1a5e9e7f-5e4b-463f-a47b-6274bfb93550",
+      "name": "respuesta_chat"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "escalar_consulta_tenda": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "log_observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log_observabilidad": {
+      "main": [
+        [
+          {
+            "node": "respuesta_chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ffd7673c-6c2d-4691-acd7-47867610d26b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "53b4946aaf424411b63a95c543cdb9f69592bc1100f59cb9dcb239dc596bca79"
+  },
+  "nodeGroups": [],
+  "id": "OsEjjot9Y2hlsmgN",
+  "tags": []
+}
