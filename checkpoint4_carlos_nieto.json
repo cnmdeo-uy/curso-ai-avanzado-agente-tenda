@@ -1,0 +1,504 @@
+{
+  "name": "checkpoint4_carlos_nieto",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "47617251-c2d2-4e45-ad23-f84115e60519",
+      "name": "correo_entrante",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T7G1E7N84Mzr3PMp",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3cc1b0a8-7f73-4596-9f24-3ee3db8924de",
+              "leftValue": "=   {{ ($json.Subject + ' ' + $json.From).toLowerCase() }}",
+              "rightValue": "=   auto-reply|autoreply|out of office|fuera de la oficina|undeliverable|no-reply|noreply",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "c8823ec6-032c-46ae-9057-9e4488ec5c78",
+      "name": "es_auto_respuesta"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        416,
+        -176
+      ],
+      "id": "7a4cc008-93eb-41a5-9014-0069bf613835",
+      "name": "stop_bucle"
+    },
+    {
+      "parameters": {
+        "promptType": "=define",
+        "text": "=   Asunto: {{ $json.Subject }}\n   Remitente: {{ $json.From }}\n   Mensaje: {{ $json.snippet }}",
+        "options": {
+          "systemMessage": "# ROL\nSos el asistente de la casilla de soporte de la Tenda de Umbanda Nossa Senhora Aparecida (Montevideo, Uruguay).\n\n# TAREA\nRedactá una respuesta breve y cordial al correo recibido. Esa respuesta se guarda como BORRADOR y una persona de la Tenda la revisa antes de enviarla.\n\n# CALENDARIO OFICIAL\n- Octubre 2026: sesiones abiertas al público el sábado 17 y el sábado 24, a las 19:45 h.\n- Noviembre 2026: sesiones abiertas al público el sábado 7 y el sábado 14, a las 19:45 h.\n\n# REGLAS\n- Si preguntan por fechas u horarios, respondé solo con el CALENDARIO OFICIAL.\n- Si preguntan otra cosa, indicá que el equipo de la Tenda le responderá a la brevedad.\n- No inventes datos, no des orientación espiritual, médica ni doctrinaria.\n- No pidas datos personales.\n- Español formal y claro, sin lenguaje inclusivo. Máximo 5 oraciones.\n- Devolvé solo el cuerpo del correo, sin asunto ni firma.",
+          "maxIterations": 5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        96
+      ],
+      "id": "9cb7f6bf-8d44-4c3b-9790-f8d05cdef33d",
+      "name": "redactor_respuesta"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        288
+      ],
+      "id": "387d0624-28f5-4cea-bfe7-f4c9426ccc96",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "df6d09a1-a6c7-4e05-a54f-0c39be315de9",
+              "name": "email",
+              "value": "={{ ($('correo_entrante').item.json.From.match(/<(.+)>/) || [null, $('correo_entrante').item.json.From])[1].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "c4b21222-ee5b-4c8f-acb7-473ce71ceb59",
+              "name": "remitente",
+              "value": "={{ $('correo_entrante').item.json.From }}",
+              "type": "string"
+            },
+            {
+              "id": "45ffca7d-85d5-43a7-8654-67d6e5d04ac5",
+              "name": "asunto",
+              "value": "={{ $('correo_entrante').item.json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "bdb37f1a-0c1b-4b4c-acdb-61eb4a774d7b",
+              "name": "cuerpo_texto",
+              "value": "={{ $('correo_entrante').item.json.snippet }}",
+              "type": "string"
+            },
+            {
+              "id": "9b5318d1-9f93-41fe-b386-cb2543b4a081",
+              "name": "borrador",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        816,
+        96
+      ],
+      "id": "22a35eb1-a8bd-4cc9-a9bf-3c184862a524",
+      "name": "limpiar_payload"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "search",
+        "filterGroupsUi": {
+          "filterGroupsValues": [
+            {
+              "filtersUi": {
+                "filterValues": [
+                  {
+                    "propertyName": "email|string",
+                    "value": "={{ $json.email }}"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        96
+      ],
+      "id": "2094d725-f333-462f-9773-f5a0bb3fb787",
+      "name": "buscar_contacto_crm",
+      "alwaysOutputData": true,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "gSdTYL4x5JhRmTtM",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "85f0bd20-cdf1-4468-88f1-f4ba272f3aee",
+              "leftValue": "={{ $json.id ? 1 : 0 }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        96
+      ],
+      "id": "889abc0f-db9b-4ea7-8034-d457a60a4323",
+      "name": "contacto_existe"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "email": "={{ $('limpiar_payload').item.json.email }}",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        -16
+      ],
+      "id": "f1c5d3b4-9e4e-4f0d-8d47-e00685556a07",
+      "name": "actualizar_contacto",
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "gSdTYL4x5JhRmTtM",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "email": "={{ $('limpiar_payload').item.json.email }}",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        192
+      ],
+      "id": "2bcc8f22-fae4-45a1-a217-270eccf533e4",
+      "name": "crear_contacto",
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "gSdTYL4x5JhRmTtM",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Re: {{ $('limpiar_payload').item.json.asunto }}",
+        "message": "={{ $('limpiar_payload').item.json.borrador }}",
+        "options": {
+          "sendTo": "={{ $('limpiar_payload').item.json.email }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1648,
+        80
+      ],
+      "id": "3efc4e0d-b38b-4d1f-a9db-bbbe745f4d8b",
+      "name": "crear_borrador_hitl",
+      "webhookId": "bbc52fca-dfe7-4ebe-8e69-6d81a68319c4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T7G1E7N84Mzr3PMp",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b4c061bf-1517-4d9c-9fec-5a30abdac73c",
+              "name": "mensaje_slack",
+              "value": "=     📩 Nuevo correo en soporte de la Tenda      De: {{ $('limpiar_payload').item.json.email }}      Asunto: {{ $('limpiar_payload').item.json.asunto }}      ✍️ Borrador listo en Gmail para revisión humana.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1872,
+        80
+      ],
+      "id": "45a91fc4-6c3d-4de6-9e85-02c34ed212eb",
+      "name": "limpiar_para_slack"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "operaciones",
+          "mode": "name"
+        },
+        "text": "={{ $json.mensaje_slack }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        2096,
+        80
+      ],
+      "id": "548e1ef1-e8a3-4039-88c5-b0923fd042cd",
+      "name": "aviso_slack_operaciones",
+      "webhookId": "54b5b224-356e-4c20-8a7d-340e812740a2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "correo_entrante": {
+      "main": [
+        [
+          {
+            "node": "es_auto_respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "es_auto_respuesta": {
+      "main": [
+        [
+          {
+            "node": "stop_bucle",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "redactor_respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "redactor_respuesta",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "redactor_respuesta": {
+      "main": [
+        [
+          {
+            "node": "limpiar_payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "limpiar_payload": {
+      "main": [
+        [
+          {
+            "node": "buscar_contacto_crm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_contacto_crm": {
+      "main": [
+        [
+          {
+            "node": "contacto_existe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "contacto_existe": {
+      "main": [
+        [
+          {
+            "node": "actualizar_contacto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "crear_contacto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "actualizar_contacto": {
+      "main": [
+        [
+          {
+            "node": "crear_borrador_hitl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "crear_contacto": {
+      "main": [
+        [
+          {
+            "node": "crear_borrador_hitl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "crear_borrador_hitl": {
+      "main": [
+        [
+          {
+            "node": "limpiar_para_slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "limpiar_para_slack": {
+      "main": [
+        [
+          {
+            "node": "aviso_slack_operaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8131955f-867c-41ba-ae57-76245faaa9da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "53b4946aaf424411b63a95c543cdb9f69592bc1100f59cb9dcb239dc596bca79"
+  },
+  "nodeGroups": [],
+  "id": "5NVCVZzuYRhztT6s",
+  "tags": []
+}
